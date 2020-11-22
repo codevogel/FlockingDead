@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Agent : MonoBehaviour {
@@ -112,8 +113,16 @@ public class Agent : MonoBehaviour {
         if (prey != null)
         {
             // Move towards prey.
-            //dX += TODO
-            //dY += TODO
+
+            float distanceToPrey = Vector2.Distance(transform.position, prey.position);
+            float timeToPrey = distanceToPrey / (movementSpeed / 3f);
+            float preyCurrentSpeed = new Vector2(prey.dY, prey.dY).magnitude;
+            Vector3 predictedPreyPosition = prey.transform.position + preyCurrentSpeed * movementSpeed * prey.transform.right * timeToPrey;
+            Debug.DrawLine(this.transform.position, predictedPreyPosition, Color.red);
+            Vector2 direction = (predictedPreyPosition - transform.position).normalized;
+            Vector2 deltaPos = movementSpeed * direction;
+            dX += deltaPos.x;
+            dY += deltaPos.y;
         }
     }
 
