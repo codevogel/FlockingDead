@@ -10,7 +10,10 @@ public class Swarm {
         for (int i = 0; i < swarmCount; i++)
         {
             Agent agent = GameObject.Instantiate(agentPrefab).GetComponent<Agent>();
-            agent.Initialize((i > swarmCount * 0.7f), zombieSprite, regularSprite, boundary);
+            if (i != swarmCount - 1)
+            {
+                agent.Initialize(true, zombieSprite, regularSprite, boundary);
+            }
             agents.Add(agent);
         }
     }

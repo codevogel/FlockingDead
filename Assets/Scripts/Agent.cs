@@ -13,6 +13,7 @@ public class Agent : MonoBehaviour {
 
     public float seperationWeight = 1f;
     public float cohesionWeight = 1f;
+    public float alignmentWeight = 1f;
 
     private BoxCollider2D boundary;
 
@@ -51,7 +52,7 @@ public class Agent : MonoBehaviour {
     public void Move(List<Agent> agents)
     {
         //Agents flock, zombie's hunt 
-        if (!isZombie) Flock(agents, seperationWeight, cohesionWeight);
+        if (!isZombie) Flock(agents, seperationWeight, cohesionWeight, alignmentWeight);
         else Hunt(agents);
         CheckBounds();
         CheckSpeed();
@@ -67,10 +68,12 @@ public class Agent : MonoBehaviour {
         transform.position = position;
     }
 
-    private void Flock(List<Agent> agents, float seperationWeight, float cohesionWeight)
+    private void Flock(List<Agent> agents, float seperationWeight, float cohesionWeight, float alignmentWeight)
     {
         int numConhesionNeighbours = 0;
+        int numAlignmentNeighbours = 0;
         Vector3 cohesionDirections = Vector2.zero;
+        Vector2 alignmentVelocities = Vector2.zero;
         foreach (Agent a in agents)
         {
             float distance = Distance(position, a.position);
@@ -90,9 +93,9 @@ public class Agent : MonoBehaviour {
                 }
                 if (distance < sight)
                 {
-                    // Alignment
-                    //dX += TODO
-                    //dY += TODO
+                    numAlignmentNeighbours++;
+                    Debug.DrawLine(a.transform.position, this.transform.position, Color.cyan);
+                    alignmentVelocities += new Vector2(a.dX, a.dY);
                 }
             }
             if (a.isZombie && distance < sight)
@@ -110,6 +113,14 @@ public class Agent : MonoBehaviour {
             Vector3 averageDirection = (cohesionDirections / numConhesionNeighbours).normalized;
 
             Vector2 deltaPos = averageDirection * cohesionWeight;
+            dX += deltaPos.x;
+            dY += deltaPos.y;
+        }
+
+        if (numAlignmentNeighbours != 0)
+        {
+            Vector3 averageVelocity = (alignmentVelocities / numAlignmentNeighbours).normalized;
+            Vector2 deltaPos = averageVelocity * alignmentWeight;
             dX += deltaPos.x;
             dY += deltaPos.y;
         }

@@ -97,8 +97,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40599ca3b4bd00e43854f9ba9d2d74d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  seperationWeight: 0.5
-  cohesionWeight: 0.02
+  seperationWeight: 1
+  cohesionWeight: 0
+  alignmentWeight: 0
   dX: 0
   dY: 0
   isZombie: 0
