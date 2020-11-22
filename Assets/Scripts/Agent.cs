@@ -66,17 +66,17 @@ public class Agent : MonoBehaviour {
             float distance = Distance(position, a.position);
             if (a != this && !a.isZombie)
             {
-                if (distance < space)
-                {
-                    // Separation
-                    dX += (position.x - a.position.x);
-                    dY += (position.y - a.position.y);
-                }
-                else if (distance < sight)
+                if (distance < sight)
                 {
                     // Cohesion
                     //dX += TODO
                     //dY += TODO
+                }
+                else if (distance < space)
+                {
+                    // Separation
+                    dX += (position.x - a.position.x);
+                    dY += (position.y - a.position.y);
                 }
                 if (distance < sight)
                 {
@@ -87,9 +87,11 @@ public class Agent : MonoBehaviour {
             }
             if (a.isZombie && distance < sight)
             {
-                // Evade
-                //dX += TODO
-                //dY += TODO
+                // Move away from spotted zombie.
+                Vector2 direction = (a.transform.position - transform.position).normalized;
+                Vector2 deltaPos = movementSpeed * - direction;
+                dX += deltaPos.x;
+                dY += deltaPos.y;
             }
         }
     }
