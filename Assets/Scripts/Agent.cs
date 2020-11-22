@@ -4,11 +4,15 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Agent : MonoBehaviour {
-    private static float sight = 100f;
-    private static float space = 150f;
+    private float sight = 100f;
+    private static float zombieSight = 150f;
+    private static float space = 50f;
     private static float movementSpeed = 75f;
     private static float rotateSpeed = 3f;
     private static float distToBoundary = 100f;
+
+    public float seperationWeight = 1f;
+    public float cohesionWeight = 1f;
 
     private BoxCollider2D boundary;
 
@@ -29,6 +33,10 @@ public class Agent : MonoBehaviour {
         this.boundary = boundary;
 
         isZombie = zombie;
+        if (isZombie)
+        {
+            sight = zombieSight;
+        }
         
         sprRenderer = GetComponent<SpriteRenderer>();
 
@@ -43,7 +51,7 @@ public class Agent : MonoBehaviour {
     public void Move(List<Agent> agents)
     {
         //Agents flock, zombie's hunt 
-        if (!isZombie) Flock(agents);
+        if (!isZombie) Flock(agents, seperationWeight, cohesionWeight);
         else Hunt(agents);
         CheckBounds();
         CheckSpeed();
@@ -59,24 +67,26 @@ public class Agent : MonoBehaviour {
         transform.position = position;
     }
 
-    private void Flock(List<Agent> agents)
+    private void Flock(List<Agent> agents, float seperationWeight, float cohesionWeight)
     {
+        int numConhesionNeighbours = 0;
+        Vector3 cohesionDirections = Vector2.zero;
         foreach (Agent a in agents)
         {
             float distance = Distance(position, a.position);
             if (a != this && !a.isZombie)
             {
-                if (distance < sight)
-                {
-                    // Cohesion
-                    //dX += TODO
-                    //dY += TODO
-                }
-                else if (distance < space)
+                if (distance < space)
                 {
                     // Separation
-                    dX += (position.x - a.position.x);
-                    dY += (position.y - a.position.y);
+                    dX += seperationWeight * (position.x - a.position.x);
+                    dY += seperationWeight * (position.y - a.position.y);
+                }
+                else if (distance < sight)
+                {
+                    numConhesionNeighbours++;
+                    Debug.DrawLine(a.transform.position, this.transform.position, Color.yellow);
+                    cohesionDirections += a.transform.position - this.transform.position;
                 }
                 if (distance < sight)
                 {
@@ -93,6 +103,15 @@ public class Agent : MonoBehaviour {
                 dX += deltaPos.x;
                 dY += deltaPos.y;
             }
+        }
+
+        if (numConhesionNeighbours != 0)
+        {
+            Vector3 averageDirection = (cohesionDirections / numConhesionNeighbours).normalized;
+
+            Vector2 deltaPos = averageDirection * cohesionWeight;
+            dX += deltaPos.x;
+            dY += deltaPos.y;
         }
     }
 
@@ -117,7 +136,7 @@ public class Agent : MonoBehaviour {
             // Move towards prey.
 
             float distanceToPrey = Vector2.Distance(transform.position, prey.position);
-            float timeToPrey = distanceToPrey / (movementSpeed / 3f);
+            float timeToPrey = distanceToPrey / (movementSpeed / 2f);
             float preyCurrentSpeed = new Vector2(prey.dY, prey.dY).magnitude;
             Vector3 predictedPreyPosition = prey.transform.position + preyCurrentSpeed * movementSpeed * prey.transform.right * timeToPrey;
             Debug.DrawLine(this.transform.position, predictedPreyPosition, Color.red);
@@ -151,7 +170,7 @@ public class Agent : MonoBehaviour {
     {
         float s;
         if (!isZombie) s = movementSpeed * Time.deltaTime;
-        else s = movementSpeed / 3f * Time.deltaTime; //Zombies are slower
+        else s = movementSpeed / 2f * Time.deltaTime; //Zombies are slower
 
         float val = Distance(Vector2.zero, new Vector2(dX, dY));
         if (val > s)
@@ -177,5 +196,6 @@ public class Agent : MonoBehaviour {
     {
         isZombie = true;
         sprRenderer.sprite = zombieSprite;
+        sight = zombieSight;
     }
 }
